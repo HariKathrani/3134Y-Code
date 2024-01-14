@@ -8,45 +8,57 @@
 /*----------------------------------------------------------------------------*/
 
 // ---- START VEXCODE CONFIGURED DEVICES ----
+// Robot Configuration:
+// [Name]               [Type]        [Port(s)]
+// Controller1          controller                    
+// Drivetrain           drivetrain    1, 2, 3, 4      
+// Intake               motor         7               
+// Flywheel             motor         8               
+// FlapA                digital_out   A               
+// FlapB                digital_out   B               
+// Outside_Flap         digital_out   C               
 // ---- END VEXCODE CONFIGURED DEVICES ----
 
 #include "vex.h"
 
 using namespace vex;
 
-using signature = vision::signature;
-using code = vision::code;
+// A global instance of competition
+competition Competition;
 
 // A global instance of brain used for printing to the V5 Brain screen
 brain  Brain;
 
 // VEXcode device constructors
-motor leftMotorA = motor(PORT1, ratio18_1, false);
-motor leftMotorB = motor(PORT2, ratio18_1, false);
-motor leftMotorC = motor(PORT6, ratio18_1, false);
-motor_group LeftDriveSmart = motor_group(leftMotorA, leftMotorB, leftMotorC);
-motor rightMotorA = motor(PORT3, ratio18_1, true);
-motor rightMotorB = motor(PORT4, ratio18_1, true);
-motor rightMotorC = motor(PORT7, ratio18_1, true);
-motor_group RightDriveSmart = motor_group(rightMotorA, rightMotorB, rightMotorC);
-drivetrain Drivetrain = drivetrain(LeftDriveSmart, RightDriveSmart, 319.19, 368.29999999999995, 381, mm, 1.25);
-motor Intake = motor(PORT5, ratio18_1, false);
 controller Controller1 = controller(primary);
-digital_out DigitalOutA = digital_out(Brain.ThreeWirePort.A);
-digital_out DigitalOutB = digital_out(Brain.ThreeWirePort.B);
-digital_out DigitalOutC = digital_out(Brain.ThreeWirePort.C); 
+motor leftMotorA = motor(PORT12, ratio6_1, false); //5
+motor leftMotorB = motor(PORT20, ratio6_1, false); //18
+motor leftMotorC = motor(PORT15, ratio6_1, false); //16
+motor_group LeftDriveSmart = motor_group(leftMotorA, leftMotorB, leftMotorC);
+motor rightMotorA = motor(PORT5, ratio6_1, true); //12
+motor rightMotorB = motor(PORT18, ratio6_1, true); //20
+motor rightMotorC = motor(PORT16, ratio6_1, true); //15
+motor_group RightDriveSmart = motor_group(rightMotorA, rightMotorB, rightMotorC);
+drivetrain Drivetrain = drivetrain(LeftDriveSmart, RightDriveSmart, 299.24, 381, 368.29999999999995, mm, 0.3333333333333333);
+motor Intake = motor(PORT7, ratio6_1, false);
+motor Flywheel = motor(PORT19, ratio6_1, false);
+digital_out FlapA = digital_out(Brain.ThreeWirePort.A);
+digital_out FlapB = digital_out(Brain.ThreeWirePort.B);
+digital_out Outside_Flap = digital_out(Brain.ThreeWirePort.C);
+motor_group drivetrain_motors = motor_group(leftMotorA, leftMotorB, leftMotorC, rightMotorA, rightMotorB, rightMotorC);
 
-// A global instance of competition
-competition Competition;
-
-//Boolean functions
+// VEXcode generated functions
+// define variable for remote controller enable/disable
 bool RemoteControlCodeEnabled = true;
 // define variables used for controlling motors based on controller inputs
+bool Controller1LeftShoulderControlMotorsStopped = true;
 bool Controller1RightShoulderControlMotorsStopped = true;
 bool DrivetrainLNeedsToBeStopped_Controller1 = true;
 bool DrivetrainRNeedsToBeStopped_Controller1 = true;
-bool flaps = true;
-bool Intake_control = true;
+bool Flaps1 = false;
+bool Flaps2 = false;
+bool flywheel_control = false;
+bool flywheel_control_reverse = false;
 // define your global instances of motors and other devices here
 
 /*---------------------------------------------------------------------------*/
@@ -78,6 +90,15 @@ void pre_auton(void) {
 /*---------------------------------------------------------------------------*/
 
 void autonomous(void) {
+  LeftDriveSmart.setVelocity(100, percent);
+  RightDriveSmart.setVelocity(100, percent);
+  drivetrain_motors.setVelocity(100, percent);
+  Intake.setVelocity(100, percent);
+  drivetrain_motors.spinFor(fwd, 1.5, seconds);
+  Intake.spinFor(fwd, 2, sec);
+  LeftDriveSmart.spinFor(fwd, .5, seconds);
+  Intake.spinFor(reverse, .5, seconds);
+  drivetrain_motors.spinFor(fwd, 1, sec);
   // ..........................................................................
   // Insert autonomous user code here.
   // ..........................................................................
@@ -100,8 +121,8 @@ void usercontrol(void) {
       // calculate the drivetrain motor velocities from the controller joystick axies
       // left = Axis3 + Axis1
       // right = Axis3 - Axis1
-      int drivetrainLeftSideSpeed = Controller1.Axis3.position() + Controller1.Axis1.position();
-      int drivetrainRightSideSpeed = Controller1.Axis3.position() - Controller1.Axis1.position();
+      int drivetrainLeftSideSpeed = Controller1.Axis3.position() - Controller1.Axis1.position();
+      int drivetrainRightSideSpeed = Controller1.Axis3.position() + Controller1.Axis1.position();
       
       // check if the value is inside of the deadband range
       if (drivetrainLeftSideSpeed < 5 && drivetrainLeftSideSpeed > -5) {
@@ -141,6 +162,54 @@ void usercontrol(void) {
         RightDriveSmart.spin(forward);
       }
     }
+      // check the ButtonR1/ButtonR2 status to control Intake
+      if (Controller1.ButtonR1.pressing()) {
+        Intake.spin(fwd, 100, percent);
+        Controller1RightShoulderControlMotorsStopped = false;
+      } else if (Controller1.ButtonR2.pressing()) {
+        Intake.spin(reverse, 100, percent);
+        Controller1RightShoulderControlMotorsStopped = false;
+      } else if (!Controller1RightShoulderControlMotorsStopped) {
+        Intake.stop();
+        // set the toggle so that we don't constantly tell the motor to stop when the buttons are released
+        Controller1RightShoulderControlMotorsStopped = true;
+      }
+        if (Controller1.ButtonUp.pressing()) {
+          Flaps1 =! Flaps1;
+          FlapA.set(Flaps1);
+          FlapB.set(Flaps1);
+          // If this doesn't work check the value of the boolean
+        } else {
+          FlapA.set(false);
+          FlapB.set(false);
+        }
+        if (Controller1.ButtonDown.pressing()) {
+          Flaps1 = false;
+          FlapA.set(false);
+          FlapB.set(false);
+        }
+        if (Controller1.ButtonRight.pressing()) {
+          Flaps2 =! Flaps2;
+          Outside_Flap.set(Flaps2);
+        } else {
+          Outside_Flap.set(false);
+        }
+        if (Controller1.ButtonLeft.pressing()) {
+          Flaps2 = false;
+          Outside_Flap.set(false);
+        }
+        if (Controller1.ButtonL1.pressing()) {
+          flywheel_control = true;
+        } else if (Controller1.ButtonL2.pressing()) {
+          flywheel_control = false;
+        }
+        if (flywheel_control==true) {
+          Flywheel.spin(forward, 85.7142857, percent);
+          Controller1LeftShoulderControlMotorsStopped = false;
+        } else if (flywheel_control==false) {
+          Flywheel.stop();
+          Controller1LeftShoulderControlMotorsStopped = true;
+        }
     // This is the main execution loop for the user control program.
     // Each time through the loop your program should update motor + servo
     // values based on feedback from the joysticks.
@@ -168,34 +237,6 @@ int main() {
 
   // Prevent main from exiting with an infinite loop.
   while (true) {
-    //Sets the boolean value for the Intake depending on what button is being pressed
-    if (Controller1.ButtonR1.pressing()) {
-      Intake_control = true;
-    } else if (Controller1.ButtonR2.pressing()) {
-      Intake_control = false;
-    }
-    //Controls for the Intake
-    if (Intake_control) {
-      Intake.spin(forward, 90, velocityUnits::pct);
-    } else {
-      Intake.spin(reverse, 90, velocityUnits::pct);
-    }
-    //Controls for the flaps
-    if (Controller1.ButtonL1.pressing()) {
-      // Toggle the state of the "flaps" boolean
-
-      if (flaps) {
-        // Run DigitalOutA, DigitalOutB, and DigitalOutC
-        DigitalOutA.set(1);
-        DigitalOutB.set(1);
-        DigitalOutC.set(1);
-      } else {
-        // Stop DigitalOutA, DigitalOutB, and DigitalOutC
-        DigitalOutA.set(0);
-        DigitalOutB.set(0);
-        DigitalOutC.set(0);
-      }
-    }
     wait(100, msec);
   }
 }
