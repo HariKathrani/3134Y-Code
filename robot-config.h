@@ -1,15 +1,19 @@
 using namespace vex;
 
 extern brain Brain;
+
+// VEXcode devices
+extern controller Controller1;
 extern drivetrain Drivetrain;
 extern motor Intake;
-extern digital_out DigitalOutA;
-extern digital_out DigitalOutB;
-extern digital_out DigitalOutC;
+extern motor Flywheel;
+extern digital_out FlapA;
+extern digital_out FlapB;
+extern digital_out Outside_Flap;
 
 /**
  * Used to initialize code/tasks/devices added using tools in VEXcode Pro.
- *
+ * 
  * This should be called at the start of your int main function.
  */
-void vexcodeInit(void);
+void  vexcodeInit( void );
