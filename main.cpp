@@ -21,7 +21,16 @@
 #include "vex.h"
 
 using namespace vex;
+void inertial_rotation(vex::turnType direction, double degree) {
+  Drivetrain.turnFor(direction, degree, deg); 
+}
 
+/*
+
+All Code starts and is below this line.
+
+
+*/
 // A global instance of competition
 competition Competition;
 
@@ -58,37 +67,10 @@ void pre_auton(void) {
 void autonomous(void) {
   // ..........................................................................
   // Insert autonomous user code here.
-  //LeftDriveSmart.setVelocity(100, percent);
-  //RightDriveSmart.setVelocity(100, percent);
-  // Drivetrain.setDriveVelocity(100, percent);
-  // Intake.setVelocity(80, percent);
-  // drivetrain_motors.setVelocity(100, percent);
-
-  // Farside auton
-
-  // Drivetrain.drive(forward);
-  // wait(2, sec);
-  // Intake.spinFor(forward, 1, sec);
-  // Drivetrain.drive(reverse);
-  // wait(2, sec);
-  // RightDriveSmart.spinFor(reverse, 50, msec);
-  // Drivetrain.drive(forward);
-  // wait(25, msec);
-
-  // Nearside auton
-
-  // drivetrain_motors.spinFor(fwd, 1.5, seconds);
-  // Intake.spinFor(reverse, 1, sec);
-  // Drivetrain.drive(reverse);
-  // wait(3,msec);
-  // Drivetrain.drive(fwd);
-  // wait(4, msec);
-  // Drivetrain.stop();
-
-  Drivetrain.setDriveVelocity(80, percent);
+  Drivetrain.setDriveVelocity(92, percent);
   Intake.setVelocity(80, percent);
-
-  // Drive backwards for 3 seconds
+  /* 3/1/24
+  // Drive backwards for 4 seconds
   Drivetrain.drive(forward);
   Intake.spin(forward);
   wait(4, seconds);
@@ -100,6 +82,36 @@ void autonomous(void) {
   // Stop the drivetrain and intake
   Drivetrain.stop();
   Intake.stop();
+  */
+  Drivetrain.drive(reverse);
+  wait(1.5, seconds);
+  inertial_rotation(left, 50);
+  Drivetrain.drive(reverse);
+  wait(2.5, seconds);
+
+  inertial_rotation(right, 180);
+
+  Drivetrain.drive(forward);
+  wait(50, msec);
+
+  inertial_rotation(right, 150);
+
+  Drivetrain.drive(forward);
+  Intake.spin(reverse);
+  wait(2.5, seconds);
+
+  inertial_rotation(left, 70);
+  Flaps.set(true);
+  Drivetrain.drive(forward);
+  Intake.spin(reverse);
+  wait(2, seconds);
+
+  Flaps.set(false);
+  Drivetrain.drive(reverse);
+  Intake.stop();
+  wait(1, seconds);
+
+  Drivetrain.stop();
   // ..........................................................................
 }
 
