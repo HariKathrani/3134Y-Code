@@ -8,20 +8,21 @@ using code = vision::code;
 brain  Brain;
 
 // VEXcode device constructors
-motor leftMotorA = motor(PORT17, ratio6_1, true);
-motor leftMotorB = motor(PORT18, ratio6_1, true);
+motor leftMotorA = motor(PORT17, ratio6_1, true); 
+motor leftMotorB = motor(PORT15, ratio6_1, true);
 motor leftMotorC = motor(PORT19, ratio6_1, true);
-motor_group LeftDriveSmart = motor_group(leftMotorA, leftMotorB, leftMotorC);
-motor rightMotorA = motor(PORT13, ratio6_1, false);
-motor rightMotorB = motor(PORT2, ratio6_1, false);
-motor rightMotorC = motor(PORT7, ratio6_1, false);
+motor_group LeftDriveSmart = motor_group(leftMotorA, leftMotorB, leftMotorC); //Left side done
+motor rightMotorA = motor(PORT13, ratio6_1, false); //done
+motor rightMotorB = motor(PORT2, ratio6_1, false); // to finish
+motor rightMotorC = motor(PORT7, ratio6_1, false); // to finish
 motor_group RightDriveSmart = motor_group(rightMotorA, rightMotorB, rightMotorC);
+inertial Inertial1 = inertial(PORT21);
 drivetrain Drivetrain = drivetrain(LeftDriveSmart, RightDriveSmart, 299.24, 314.325, 228.6, mm, 0.5);
 controller Controller1 = controller(primary);
-motor Intake = motor(PORT15, ratio6_1, false);
-motor Hang_Motor = motor(PORT5, ratio36_1, false);
+motor Intake = motor(PORT16, ratio6_1, false); //done
+motor Hang_Motor = motor(PORT1, ratio36_1, false); //done
 digital_out Flaps = digital_out(Brain.ThreeWirePort.A);
-digital_out Low_Hang = digital_out(Brain.ThreeWirePort.B);
+digital_out Rachet = digital_out(Brain.ThreeWirePort.B);
 // VEXcode generated functions
 // define variable for remote controller enable/disable
 bool RemoteControlCodeEnabled = true;
@@ -130,11 +131,11 @@ int rc_auto_loop_function_Controller1() {
             waitForButtonRelease(Controller1.ButtonX);
         }
         if (Hang_Control) {
-          Low_Hang.set(true);
+          Rachet.set(true);
         } else if (Flaps_Control) {
           Flaps.set(true);
         } else {
-          Low_Hang.set(false);
+          Rachet.set(false);
           Flaps.set(false);
         }
     // wait before repeating the process
