@@ -8,10 +8,10 @@ extern controller Controller1;
 extern motor Intake;
 extern motor Hang_Motor;
 extern digital_out Flaps;
-extern digital_out Low_Hang;
+extern digital_out Rachet;
 extern motor_group LeftDriveSmart;
 extern motor_group RightDriveSmart;
-
+extern inertial Inertial1;
 
 /**
  * Used to initialize code/tasks/devices added using tools in VEXcode Pro.
